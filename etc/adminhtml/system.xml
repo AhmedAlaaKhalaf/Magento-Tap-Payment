@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="payment">
+            <group id="tap_payment" translate="label comment" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Tap Payments</label>
+                <comment>Hosted checkout: the customer is redirected to Tap to pay, then back to the store. Tap also posts the result to /tap/payment/webhook.</comment>
+
+                <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Enable Gateway</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>payment/tap_payment/active</config_path>
+                </field>
+                <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Title</label>
+                    <config_path>payment/tap_payment/title</config_path>
+                </field>
+                <field id="test_public_key" translate="label comment" type="obscure" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Test Public Key</label>
+                    <comment>Publishable key (pk_test_...). Stored encrypted.</comment>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <config_path>payment/tap_payment/test_public_key</config_path>
+                </field>
+                <field id="test_secret_key" translate="label comment" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Test Secret Key</label>
+                    <comment>Secret key (sk_test_...). Used for API calls and webhook signature checks. Stored encrypted.</comment>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <config_path>payment/tap_payment/test_secret_key</config_path>
+                </field>
+                <field id="transaction_mode" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Transaction Mode</label>
+                    <comment>Charge calls /v2/charges (captured immediately). Authorize calls /v2/authorize (funds held).</comment>
+                    <source_model>Tap\Payment\Model\Config\Source\TransactionMode</source_model>
+                    <config_path>payment/tap_payment/transaction_mode</config_path>
+                </field>
+                <field id="allowspecific" translate="label" type="allowspecific" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Payment from Applicable Countries</label>
+                    <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+                    <config_path>payment/tap_payment/allowspecific</config_path>
+                </field>
+                <field id="specificcountry" translate="label" type="multiselect" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Payment from Specific Countries</label>
+                    <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                    <can_be_empty>1</can_be_empty>
+                    <config_path>payment/tap_payment/specificcountry</config_path>
+                    <depends>
+                        <field id="allowspecific">1</field>
+                    </depends>
+                </field>
+                <field id="debug" translate="label comment" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Debug Logging</label>
+                    <comment>Logs API requests and responses to var/log/tap_payment.log.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>payment/tap_payment/debug</config_path>
+                </field>
+                <field id="sort_order" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Sort Order</label>
+                    <frontend_class>validate-number</frontend_class>
+                    <config_path>payment/tap_payment/sort_order</config_path>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

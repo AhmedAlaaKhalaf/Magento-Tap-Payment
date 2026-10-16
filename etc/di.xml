@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- Payment method facade (Magento Payment Gateway) -->
+    <virtualType name="TapPaymentFacade" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">Tap\Payment\Gateway\Config\Config::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Tap\Payment\Block\Info</argument>
+            <argument name="valueHandlerPool" xsi:type="object">TapPaymentValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">TapPaymentValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">TapPaymentCommandPool</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Tap\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">Tap\Payment\Gateway\Config\Config::CODE</argument>
+        </arguments>
+    </type>
+
+    <virtualType name="TapPaymentValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">TapPaymentConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="TapPaymentConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">Tap\Payment\Gateway\Config\Config</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="TapPaymentValidatorPool" type="Magento\Payment\Gateway\Validator\ValidatorPool">
+        <arguments>
+            <argument name="validators" xsi:type="array">
+                <item name="country" xsi:type="string">TapPaymentCountryValidator</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="TapPaymentCountryValidator" type="Magento\Payment\Gateway\Validator\CountryValidator">
+        <arguments>
+            <argument name="config" xsi:type="object">Tap\Payment\Gateway\Config\Config</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Place Order: "initialize" creates the Tap charge/authorization -->
+    <virtualType name="TapPaymentCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="initialize" xsi:type="string">TapPaymentInitializeCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="TapPaymentInitializeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">TapPaymentInitializeRequest</argument>
+            <argument name="transferFactory" xsi:type="object">Tap\Payment\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">Tap\Payment\Gateway\Http\Client\TapClient</argument>
+            <argument name="handler" xsi:type="object">Tap\Payment\Gateway\Response\InitializeHandler</argument>
+            <argument name="validator" xsi:type="object">Tap\Payment\Gateway\Validator\InitializeResponseValidator</argument>
+            <argument name="logger" xsi:type="object">TapPaymentMonolog</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="TapPaymentInitializeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="payment" xsi:type="string">Tap\Payment\Gateway\Request\PaymentDataBuilder</item>
+                <item name="customer" xsi:type="string">Tap\Payment\Gateway\Request\CustomerDataBuilder</item>
+                <item name="urls" xsi:type="string">Tap\Payment\Gateway\Request\UrlDataBuilder</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Tap\Payment\Block\Info">
+        <arguments>
+            <argument name="config" xsi:type="object">Tap\Payment\Gateway\Config\Config</argument>
+        </arguments>
+    </type>
+
+    <!-- Logging: var/log/tap_payment.log -->
+    <virtualType name="TapPaymentLogHandler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">/var/log/tap_payment.log</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="TapPaymentMonolog" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="name" xsi:type="string">tap_payment</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="file" xsi:type="object">TapPaymentLogHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="TapPaymentDebugLogger" type="Magento\Payment\Model\Method\Logger">
+        <arguments>
+            <argument name="logger" xsi:type="object">TapPaymentMonolog</argument>
+            <argument name="config" xsi:type="object">Tap\Payment\Gateway\Config\Config</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Tap\Payment\Gateway\Http\Client\TapClient">
+        <arguments>
+            <argument name="logger" xsi:type="object">TapPaymentDebugLogger</argument>
+        </arguments>
+    </type>
+    <type name="Tap\Payment\Model\Api\TapApi">
+        <arguments>
+            <argument name="client" xsi:type="object">Tap\Payment\Gateway\Http\Client\TapClient</argument>
+        </arguments>
+    </type>
+    <type name="Tap\Payment\Model\PaymentResultProcessor">
+        <arguments>
+            <argument name="logger" xsi:type="object">TapPaymentMonolog</argument>
+        </arguments>
+    </type>
+    <type name="Tap\Payment\Controller\Payment\Redirect">
+        <arguments>
+            <argument name="logger" xsi:type="object">TapPaymentMonolog</argument>
+        </arguments>
+    </type>
+    <type name="Tap\Payment\Controller\Payment\Response">
+        <arguments>
+            <argument name="logger" xsi:type="object">TapPaymentMonolog</argument>
+        </arguments>
+    </type>
+    <type name="Tap\Payment\Controller\Payment\Webhook">
+        <arguments>
+            <argument name="logger" xsi:type="object">TapPaymentMonolog</argument>
+        </arguments>
+    </type>
+</config>
